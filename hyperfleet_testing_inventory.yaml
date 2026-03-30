@@ -1,0 +1,472 @@
+# HyperFleet Testing Inventory
+# Generated: 2026-03-30
+
+# ============================================================================
+# Component Tests
+# ============================================================================
+components:
+  API:
+    repo: https://github.com/openshift-hyperfleet/hyperfleet-api
+
+    tests:
+      unit:
+        location: pkg/..., cmd/...
+        command: make test
+        details: |
+          - Test files scattered across pkg/ and cmd/ directories
+          - Uses OCM_ENV=unit_testing
+          - Run with gotestsum for formatted output
+        ci:
+          presubmit: pull-ci-openshift-hyperfleet-hyperfleet-api-main-unit
+          logs_url: https://prow.ci.openshift.org/?job=pull-ci-openshift-hyperfleet-hyperfleet-api-main-unit
+
+      integration:
+        location: test/integration
+        command: make test-integration
+        details: |
+          - Uses testcontainers for PostgreSQL
+          - TESTCONTAINERS_RYUK_DISABLED=true
+          - OCM_ENV=integration_testing
+          - Timeout: 1 hour
+        ci:
+          presubmit: pull-ci-openshift-hyperfleet-hyperfleet-api-main-presubmits-integration
+          logs_url: https://prow.ci.openshift.org/?job=pull-ci-openshift-hyperfleet-hyperfleet-api-main-presubmits-integration
+
+      other_jobs:
+        - name: pull-ci-openshift-hyperfleet-hyperfleet-api-main-lint
+          purpose: Linting with golangci-lint
+        - name: pull-ci-openshift-hyperfleet-hyperfleet-api-main-helm-test
+          purpose: Helm chart validation
+        - name: pull-ci-openshift-hyperfleet-hyperfleet-api-main-images
+          purpose: Container image build
+        - name: pull-ci-openshift-hyperfleet-hyperfleet-api-main-images-images
+          purpose: Container image build (images variant)
+        - name: pull-ci-openshift-hyperfleet-hyperfleet-api-main-presubmits-images
+          purpose: Container image build (presubmits variant)
+
+  Sentinel:
+    repo: https://github.com/openshift-hyperfleet/hyperfleet-sentinel
+
+    tests:
+      unit:
+        location: internal/..., pkg/...
+        command: make test
+        details: |
+          - Tests in internal/metrics, internal/config, internal/health,
+            internal/payload, internal/sentinel, internal/engine, internal/client
+          - Tests in pkg/logger, pkg/telemetry
+        ci:
+          presubmit: pull-ci-openshift-hyperfleet-hyperfleet-sentinel-main-unit
+          logs_url: https://prow.ci.openshift.org/?job=pull-ci-openshift-hyperfleet-hyperfleet-sentinel-main-unit
+
+      integration:
+        location: test/integration
+        command: make test-integration
+        details: |
+          - Integration tests for sentinel reconciliation logic
+        ci:
+          presubmit: pull-ci-openshift-hyperfleet-hyperfleet-sentinel-main-presubmits-integration
+          logs_url: https://prow.ci.openshift.org/?job=pull-ci-openshift-hyperfleet-hyperfleet-sentinel-main-presubmits-integration
+
+      other_jobs:
+        - name: pull-ci-openshift-hyperfleet-hyperfleet-sentinel-main-lint
+          purpose: Linting with golangci-lint
+        - name: pull-ci-openshift-hyperfleet-hyperfleet-sentinel-main-helm-test
+          purpose: Helm chart validation
+        - name: pull-ci-openshift-hyperfleet-hyperfleet-sentinel-main-images
+          purpose: Container image build
+        - name: pull-ci-openshift-hyperfleet-hyperfleet-sentinel-main-images-images
+          purpose: Container image build (images variant)
+        - name: pull-ci-openshift-hyperfleet-hyperfleet-sentinel-main-presubmits-images
+          purpose: Container image build (presubmits variant)
+
+  Adapter:
+    repo: https://github.com/openshift-hyperfleet/hyperfleet-adapter
+
+    tests:
+      unit:
+        location: internal/..., pkg/...
+        command: make test
+        details: |
+          - Tests in internal/dryrun, internal/configloader, internal/criteria,
+            internal/executor, internal/k8sclient, internal/maestroclient, etc.
+          - Run with race detection
+        ci:
+          presubmit: pull-ci-openshift-hyperfleet-hyperfleet-adapter-main-unit
+          logs_url: https://prow.ci.openshift.org/?job=pull-ci-openshift-hyperfleet-hyperfleet-adapter-main-unit
+
+      integration:
+        location: test/integration
+        command: make test-integration
+        details: |
+          - Subdirectories: config-loader, k8sclient, executor, maestroclient
+          - Requires Docker/Podman
+        ci:
+          presubmit: pull-ci-openshift-hyperfleet-hyperfleet-adapter-main-presubmits-integration
+          logs_url: https://prow.ci.openshift.org/?job=pull-ci-openshift-hyperfleet-hyperfleet-adapter-main-presubmits-integration
+
+      other_jobs:
+        - name: pull-ci-openshift-hyperfleet-hyperfleet-adapter-main-lint
+          purpose: Linting with golangci-lint
+        - name: pull-ci-openshift-hyperfleet-hyperfleet-adapter-main-helm-test
+          purpose: Helm chart validation
+        - name: pull-ci-openshift-hyperfleet-hyperfleet-adapter-main-images-images
+          purpose: Container image build (images variant)
+        - name: pull-ci-openshift-hyperfleet-hyperfleet-adapter-main-presubmits-images
+          purpose: Container image build (presubmits variant)
+
+  Broker:
+    repo: https://github.com/openshift-hyperfleet/hyperfleet-broker
+
+    tests:
+      unit:
+        location: broker/...
+        command: make test
+        details: |
+          - Tests in broker/ directory (error_test.go, config_test.go, cloudevents_test.go)
+        ci:
+          presubmit: pull-ci-openshift-hyperfleet-hyperfleet-broker-main-unit
+          logs_url: https://prow.ci.openshift.org/?job=pull-ci-openshift-hyperfleet-hyperfleet-broker-main-unit
+
+      integration:
+        location: test/integration
+        command: make test-integration
+        details: |
+          - Tests for RabbitMQ and Google Pub/Sub implementations
+          - Subdirectories: rabbitmq/, googlepubsub/
+          - Performance tests (broker_perf_test.go)
+          - Leak tests (broker_leak_test.go)
+        ci:
+          presubmit: pull-ci-openshift-hyperfleet-hyperfleet-broker-main-presubmits-integration
+          logs_url: https://prow.ci.openshift.org/?job=pull-ci-openshift-hyperfleet-hyperfleet-broker-main-presubmits-integration
+
+      other_jobs:
+        - name: pull-ci-openshift-hyperfleet-hyperfleet-broker-main-lint
+          purpose: Linting with golangci-lint
+        - name: pull-ci-openshift-hyperfleet-hyperfleet-broker-main-presubmits-images
+          purpose: Container image build (presubmits variant)
+
+# ============================================================================
+# End-to-End Tests
+# ============================================================================
+e2e:
+  repo: https://github.com/openshift-hyperfleet/hyperfleet-e2e
+  description: Black-box end-to-end tests for HyperFleet cluster lifecycle management
+
+  tests:
+    unit:
+      location: pkg/...
+      command: make test
+      details: |
+        - Minimal unit tests (pkg/labels, pkg/helper)
+        - Run with race detection and coverage
+
+    e2e:
+      location: e2e/
+      local_command: make e2e
+      local_ci_command: make e2e-ci
+      details: |
+        - Organized by feature area:
+          - e2e/cluster: Cluster lifecycle tests (creation.go, concurrent_creation.go, adapter_failure.go)
+          - e2e/nodepool: Node pool tests (creation.go, concurrent_creation.go)
+          - e2e/adapter: Adapter tests (adapter_with_maestro.go, adapter_failover.go)
+        - Uses custom binary: bin/hyperfleet-e2e
+        - Environment: TESTDATA_DIR=$(PWD)/testdata
+        - Local testing: make e2e (default) or make e2e-ci (with CI config)
+
+      prow_ci_execution:
+        method: step_registry_workflow
+        workflow_name: openshift-hyperfleet-e2e
+        workflow_location: ci-operator/step-registry/openshift-hyperfleet/e2e/
+        phases:
+          pre: openshift-hyperfleet-e2e-setup (deploys HyperFleet)
+          test: openshift-hyperfleet-e2e-test (runs hyperfleet-e2e binary)
+          post: cleanup (cluster resources + cloud provider)
+        test_filtering: --label-filter=${LABEL_FILTER} (tier0 or tier1)
+        note: Prow CI directly invokes hyperfleet-e2e binary via step-registry workflow
+
+      ci:
+        presubmit: pull-ci-openshift-hyperfleet-hyperfleet-e2e-main-e2e-images
+        periodic:
+          - name: periodic-ci-openshift-hyperfleet-hyperfleet-e2e-main-e2e-tier0-nightly
+            purpose: Tier 0 (critical) E2E tests - nightly at 09:30 UTC
+            label_filter: tier0
+            cron: "30 9 * * *"
+          - name: periodic-ci-openshift-hyperfleet-hyperfleet-e2e-main-e2e-tier1-nightly
+            purpose: Tier 1 (important) E2E tests - nightly at 11:30 UTC
+            label_filter: tier1
+            cron: "30 11 * * *"
+        logs_url: https://prow.ci.openshift.org/?repo=openshift-hyperfleet%2Fhyperfleet-e2e
+        slack_notifications: "#hyperfleet-e2e-status"
+
+    other_jobs:
+      - name: pull-ci-openshift-hyperfleet-hyperfleet-e2e-main-lint
+        purpose: Linting with golangci-lint
+      - name: pull-ci-openshift-hyperfleet-hyperfleet-e2e-main-images-images
+        purpose: Container image build (images variant)
+
+  # Components covered by E2E tests
+  covers_components:
+    - API
+    - Sentinel
+    - Adapter
+    - Broker
+
+# ============================================================================
+# Cross-Component Dependencies and Testing
+# ============================================================================
+
+# High-level dependency mapping showing which tests verify each integration point
+dependency_testing:
+  API_to_Database:
+    description: API persists data to PostgreSQL
+    dependency_type: infrastructure
+    tested_by:
+      - component: API
+        test_type: integration
+        details: Uses testcontainers to spin up real PostgreSQL
+
+  Sentinel_to_API:
+    description: Sentinel polls API for cluster state changes
+    dependency_type: internal_component
+    tested_by:
+      - component: Sentinel
+        test_type: integration
+        details: Uses mock API server to verify polling and state updates
+      - component: E2E
+        test_type: e2e
+        location: e2e/cluster/, e2e/nodepool/
+        details: Validates Sentinel reads resources and reports status via API
+
+  Sentinel_to_Broker:
+    description: Sentinel publishes CloudEvents to Broker
+    dependency_type: internal_component
+    tested_by:
+      - component: Sentinel
+        test_type: integration
+        details: Uses real RabbitMQ container to verify event publishing
+      - component: E2E
+        test_type: e2e
+        location: e2e/cluster/
+        details: Validates Sentinel publishes CloudEvents to Broker
+
+  Adapter_to_Broker:
+    description: Adapter consumes CloudEvents from Broker
+    dependency_type: internal_component
+    tested_by:
+      - component: Adapter
+        test_type: integration
+        details: Verifies event consumption and processing
+      - component: E2E
+        test_type: e2e
+        location: e2e/cluster/, e2e/adapter/
+        details: Validates Adapter consumes CloudEvents from Broker
+
+  Adapter_to_API:
+    description: Adapter reports status back to API
+    dependency_type: internal_component
+    tested_by:
+      - component: Adapter
+        test_type: integration
+        details: Validates status reporting mechanism
+      - component: E2E
+        test_type: e2e
+        location: e2e/cluster/, e2e/adapter/
+        details: Validates Adapter reports execution status to API
+
+  Adapter_Resource_Creation:
+    description: Adapter creates resources using configurable client (Maestro or Kubernetes)
+    dependency_type: configurable_client
+    note: Both clients can be configured. If both present, Maestro takes precedence.
+
+    tested_by:
+      - component: Adapter
+        test_type: integration
+        location: test/integration/maestroclient/, test/integration/k8sclient/
+      - component: E2E
+        test_type: e2e
+        location: e2e/adapter/
+
+# ============================================================================
+# Dependency Change Impact Analysis
+# ============================================================================
+# When a component changes, which other components' tests should be triggered
+
+change_impact:
+  API:
+    description: Changes to API (implementation or schema)
+    triggers_tests:
+      - component: Sentinel
+        reason: Sentinel depends on API for cluster state polling
+        tests: [integration, e2e]
+      - component: Adapter
+        reason: Adapter reports status to API
+        tests: [integration, e2e]
+      - component: E2E
+        reason: E2E tests exercise full API workflow
+        tests: [e2e]
+
+  Sentinel:
+    description: Changes to Sentinel orchestration logic or event publishing
+    triggers_tests:
+      - component: Adapter
+        reason: Adapter consumes events published by Sentinel
+        tests: [integration, e2e]
+      - component: E2E
+        reason: E2E tests validate full orchestration flow
+        tests: [e2e]
+
+  Adapter:
+    description: Changes to Adapter event processing or status reporting
+    triggers_tests:
+      - component: E2E
+        reason: E2E tests validate adapter execution and status
+        tests: [e2e]
+
+# ============================================================================
+# Complete Workflow Coverage
+# ============================================================================
+# End-to-end workflows and which tests validate them
+
+workflows:
+  cluster_creation:
+    description: "Complete cluster creation workflow: API → Sentinel → Broker → Adapter → API"
+    steps:
+      - component: API
+        action: Receives cluster creation request, persists to DB
+      - component: Sentinel
+        action: Polls API, detects new cluster, makes orchestration decision
+      - component: Broker
+        action: Distributes CloudEvent to subscribed adapters
+      - component: Adapter
+        action: Consumes event, executes provisioning, reports status
+      - component: API
+        action: Updates cluster status based on adapter reports
+    tested_by:
+      - test_type: e2e
+        location: e2e/cluster/creation.go
+        validates: Complete workflow from API request to cluster Ready state
+
+  cluster_update:
+    description: "Cluster update workflow with generation tracking"
+    steps:
+      - component: API
+        action: Receives update, increments generation
+      - component: Sentinel
+        action: Detects generation change, publishes event
+      - component: Adapter
+        action: Processes update, updates observed_generation
+      - component: API
+        action: Aggregates status from adapters
+    tested_by:
+      - test_type: e2e
+        location: E2E update tests
+        validates: Generation tracking and adapter re-execution
+
+  adapter_failure_recovery:
+    description: "Adapter failure and retry workflow"
+    steps:
+      - component: Adapter
+        action: Fails to process event
+      - component: Broker
+        action: Retries event delivery (dead letter queue)
+      - component: Adapter
+        action: Retries and succeeds
+    tested_by:
+      - test_type: e2e
+        location: e2e/cluster/adapter_failure.go
+        validates: Failure handling and recovery
+
+  concurrent_operations:
+    description: "Multiple concurrent cluster operations"
+    tested_by:
+      - test_type: e2e
+        location: e2e/cluster/concurrent_creation.go
+        validates: Concurrent cluster creation without conflicts
+
+# ============================================================================
+# Prow CI Jobs
+# ============================================================================
+prow_ci:
+  status: COMPLETE
+  repo: https://github.com/openshift/release
+
+  configuration:
+    ci_operator_config: ci-operator/config/openshift-hyperfleet/
+    ci_operator_jobs: ci-operator/jobs/openshift-hyperfleet/
+
+  dashboard: https://prow.ci.openshift.org/
+
+  job_naming_pattern: |
+    Presubmit: pull-ci-openshift-hyperfleet-<component>-main-<test-type>
+    Periodic: periodic-ci-openshift-hyperfleet-<component>-main-<test-type>
+    Postsubmit: branch-ci-openshift-hyperfleet-<component>-main-<action>
+
+  components:
+    API:
+      config: ci-operator/config/openshift-hyperfleet/hyperfleet-api/
+      jobs: ci-operator/jobs/openshift-hyperfleet/hyperfleet-api/
+
+    Sentinel:
+      config: ci-operator/config/openshift-hyperfleet/hyperfleet-sentinel/
+      jobs: ci-operator/jobs/openshift-hyperfleet/hyperfleet-sentinel/
+
+    Adapter:
+      config: ci-operator/config/openshift-hyperfleet/hyperfleet-adapter/
+      jobs: ci-operator/jobs/openshift-hyperfleet/hyperfleet-adapter/
+
+    Broker:
+      config: ci-operator/config/openshift-hyperfleet/hyperfleet-broker/
+      jobs: ci-operator/jobs/openshift-hyperfleet/hyperfleet-broker/
+
+    E2E:
+      config: ci-operator/config/openshift-hyperfleet/hyperfleet-e2e/
+      jobs: ci-operator/jobs/openshift-hyperfleet/hyperfleet-e2e/
+      has_periodics: true
+      periodic_schedule:
+        tier0: nightly
+        tier1: nightly
+
+# ============================================================================
+# Supporting Components
+# ============================================================================
+# Components that are part of HyperFleet release but are not runtime services
+
+supporting_components:
+  hyperfleet-infra:
+    type: deployment_configuration
+    repo: https://github.com/openshift-hyperfleet/hyperfleet-infra
+    description: Deployment configurations (Helm charts, Terraform)
+
+    contents:
+      - Helm chart wrappers for API, Sentinel, Adapters, Maestro
+      - Terraform configs for GCP infrastructure provisioning
+      - Kubernetes manifests (RabbitMQ, etc.)
+      - Deployment helper scripts
+
+    validation_tests:
+      terraform_validate:
+        command: make validate-terraform
+        purpose: Terraform syntax validation and formatting check
+
+      helm_lint:
+        command: make lint-helm
+        purpose: Helm chart structure and values validation
+
+      helm_template:
+        command: make validate-helm-charts
+        purpose: Helm chart rendering validation (googlepubsub and rabbitmq variants)
+
+      shellcheck:
+        command: make lint-shellcheck
+        purpose: Shell script validation
+
+      integration_deployment:
+        command: make ci-test
+        purpose: Full deployment test to GCP cluster with health checks
+
+    ci:
+      status: No Prow CI configured
+      note: Validation done manually or in separate CI system
+
+    release_note: Essential for successful deployment - validated as part of release process
