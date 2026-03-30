@@ -151,66 +151,83 @@ components:
 # ============================================================================
 e2e:
   repo: https://github.com/openshift-hyperfleet/hyperfleet-e2e
-  description: Black-box end-to-end tests for HyperFleet cluster lifecycle management
+  description: End-to-end tests validating complete HyperFleet workflows
 
-  tests:
-    unit:
-      location: pkg/...
-      command: make test
-      details: |
-        - Minimal unit tests (pkg/labels, pkg/helper)
-        - Run with race detection and coverage
-
-    e2e:
-      location: e2e/
-      local_command: make e2e
-      local_ci_command: make e2e-ci
-      details: |
-        - Organized by feature area:
-          - e2e/cluster: Cluster lifecycle tests (creation.go, concurrent_creation.go, adapter_failure.go)
-          - e2e/nodepool: Node pool tests (creation.go, concurrent_creation.go)
-          - e2e/adapter: Adapter tests (adapter_with_maestro.go, adapter_failover.go)
-        - Uses custom binary: bin/hyperfleet-e2e
-        - Environment: TESTDATA_DIR=$(PWD)/testdata
-        - Local testing: make e2e (default) or make e2e-ci (with CI config)
-
-      prow_ci_execution:
-        method: step_registry_workflow
-        workflow_name: openshift-hyperfleet-e2e
-        workflow_location: ci-operator/step-registry/openshift-hyperfleet/e2e/
-        phases:
-          pre: openshift-hyperfleet-e2e-setup (deploys HyperFleet)
-          test: openshift-hyperfleet-e2e-test (runs hyperfleet-e2e binary)
-          post: cleanup (cluster resources + cloud provider)
-        test_filtering: --label-filter=${LABEL_FILTER} (tier0 or tier1)
-        note: Prow CI directly invokes hyperfleet-e2e binary via step-registry workflow
-
-      ci:
-        presubmit: pull-ci-openshift-hyperfleet-hyperfleet-e2e-main-e2e-images
-        periodic:
-          - name: periodic-ci-openshift-hyperfleet-hyperfleet-e2e-main-e2e-tier0-nightly
-            purpose: Tier 0 (critical) E2E tests - nightly at 09:30 UTC
-            label_filter: tier0
-            cron: "30 9 * * *"
-          - name: periodic-ci-openshift-hyperfleet-hyperfleet-e2e-main-e2e-tier1-nightly
-            purpose: Tier 1 (important) E2E tests - nightly at 11:30 UTC
-            label_filter: tier1
-            cron: "30 11 * * *"
-        logs_url: https://prow.ci.openshift.org/?repo=openshift-hyperfleet%2Fhyperfleet-e2e
-        slack_notifications: "#hyperfleet-e2e-status"
-
-    other_jobs:
-      - name: pull-ci-openshift-hyperfleet-hyperfleet-e2e-main-lint
-        purpose: Linting with golangci-lint
-      - name: pull-ci-openshift-hyperfleet-hyperfleet-e2e-main-images-images
-        purpose: Container image build (images variant)
-
-  # Components covered by E2E tests
-  covers_components:
+  components_tested:
     - API
     - Sentinel
     - Adapter
     - Broker
+
+  test_suites:
+    cluster_lifecycle:
+      folder: e2e/cluster/
+      package: github.com/openshift-hyperfleet/hyperfleet-e2e/e2e/cluster
+      validates:
+        - Complete cluster creation workflow (API → Sentinel → Broker → Adapter → API)
+        - Concurrent cluster operations without conflicts
+        - Adapter failure recovery and DLQ handling
+
+    nodepool_management:
+      folder: e2e/nodepool/
+      package: github.com/openshift-hyperfleet/hyperfleet-e2e/e2e/nodepool
+      validates:
+        - Node pool creation and updates via API
+        - Adapter node pool provisioning
+        - Concurrent node pool operations
+
+    adapter_integration:
+      folder: e2e/adapter/
+      package: github.com/openshift-hyperfleet/hyperfleet-e2e/e2e/adapter
+      validates:
+        - Maestro integration (Adapter → Maestro → ManifestWork)
+        - Adapter failover scenarios
+
+  execution:
+    local_command: make e2e
+    local_ci_command: make e2e-ci
+    binary: bin/hyperfleet-e2e
+    environment: TESTDATA_DIR=$(PWD)/testdata
+
+  prow_ci_execution:
+    method: step_registry_workflow
+    workflow_name: openshift-hyperfleet-e2e
+    workflow_location: ci-operator/step-registry/openshift-hyperfleet/e2e/
+    phases:
+      pre: openshift-hyperfleet-e2e-setup (deploys HyperFleet)
+      test: openshift-hyperfleet-e2e-test (runs hyperfleet-e2e binary)
+      post: cleanup (cluster resources + cloud provider)
+    test_filtering: --label-filter=${LABEL_FILTER} (tier0 or tier1)
+    note: Prow CI directly invokes hyperfleet-e2e binary via step-registry workflow
+
+  outputs:
+    logs:
+      url_pattern: https://prow.ci.openshift.org/view/gs/test-platform-results/logs/{JOB_NAME}/{BUILD_ID}
+      example: https://prow.ci.openshift.org/view/gs/test-platform-results/logs/periodic-ci-openshift-hyperfleet-hyperfleet-e2e-main-e2e-tier1-nightly/2038217171653365760
+
+    junit_report:
+      url_pattern: https://gcsweb-ci.apps.ci.l2s4.p1.openshiftapps.com/gcs/test-platform-results/logs/{JOB_NAME}/{BUILD_ID}/artifacts/{TEST_NAME}/openshift-hyperfleet-e2e-test/artifacts/junit.xml
+      example: https://gcsweb-ci.apps.ci.l2s4.p1.openshiftapps.com/gcs/test-platform-results/logs/periodic-ci-openshift-hyperfleet-hyperfleet-e2e-main-e2e-tier1-nightly/2038217171653365760/artifacts/tier1-nightly/openshift-hyperfleet-e2e-test/artifacts/junit.xml
+      note: TEST_NAME is tier0 or tier1-nightly depending on job
+
+    variables:
+      JOB_NAME: Prow job name (e.g., periodic-ci-openshift-hyperfleet-hyperfleet-e2e-main-e2e-tier1-nightly)
+      BUILD_ID: Unique build identifier
+      TEST_NAME: Test phase name (tier0 or tier1-nightly)
+
+  ci:
+    presubmit: pull-ci-openshift-hyperfleet-hyperfleet-e2e-main-e2e-images
+    periodic:
+      - name: periodic-ci-openshift-hyperfleet-hyperfleet-e2e-main-e2e-tier0-nightly
+        purpose: Tier 0 (critical) E2E tests - nightly at 09:30 UTC
+        label_filter: tier0
+        cron: "30 9 * * *"
+      - name: periodic-ci-openshift-hyperfleet-hyperfleet-e2e-main-e2e-tier1-nightly
+        purpose: Tier 1 (important) E2E tests - nightly at 11:30 UTC
+        label_filter: tier1
+        cron: "30 11 * * *"
+    logs_url: https://prow.ci.openshift.org/?repo=openshift-hyperfleet%2Fhyperfleet-e2e
+    slack_notifications: "#hyperfleet-e2e-status"
 
 # ============================================================================
 # Cross-Component Dependencies and Testing
